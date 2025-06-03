@@ -1,123 +1,145 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" >
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Campeonatos em Destaque - Futebol</title>
-<style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f4f8;
-    margin: 0; padding: 20px;
-    display: flex; justify-content: center;
-  }
-  .container {
-    max-width: 720px;
-    width: 100%;
-  }
-  h1 {
-    color: #2563eb;
-    margin-bottom: 1rem;
-    font-weight: 700;
-  }
-  .loading {
-    color: #2563eb;
-    font-weight: 600;
-  }
-  .error {
-    color: #dc2626;
-    font-weight: 600;
-  }
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-  li {
-    background: #fff;
-    margin-bottom: 12px;
-    padding: 15px 18px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
-    cursor: default;
-    transition: background 0.2s ease;
-  }
-  li:hover {
-    background: #e0e7ff;
-  }
-  .stage-name {
-    font-weight: 700;
-    font-size: 1.15rem;
-    color: #1e3a8a;
-  }
-  .stage-details {
-    font-size: 0.9rem;
-    color: #4b5563;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jogos Reais SofaScore</title>
+  <style>
+    /* Reset básico */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f5f7fa;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 2.2rem;
+      color: #2563eb;
+      margin-bottom: 2rem;
+      text-align: center;
+      letter-spacing: 1.2px;
+    }
+    #matches {
+      max-width: 900px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+    }
+    .match-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+    .match-info {
+      font-size: 1rem;
+      color: #555;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+    p {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #777;
+    }
+
+    /* Responsividade simples */
+    @media (max-width: 480px) {
+      body {
+        padding: 1rem 0.5rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+      }
+      .card {
+        padding: 1rem 1.2rem;
+      }
+    }
+  </style>
 </head>
 <body>
+  <h1>Jogos de Futebol ao Vivo - SofaScore</h1>
+  <div id="matches">Carregando jogos...</div>
 
-<div class="container">
-  <h1>Campeonatos em Destaque (Futebol)</h1>
-  <div id="loading" class="loading">Carregando campeonatos...</div>
-  <div id="error" class="error" style="display:none;"></div>
-  <ul id="stages"></ul>
-</div>
+  <script>
+    const matchesDiv = document.getElementById('matches');
 
-<script>
-  const loadingEl = document.getElementById('loading');
-  const errorEl = document.getElementById('error');
-  const stagesEl = document.getElementById('stages');
-
-  async function fetchFeaturedStages() {
-    loadingEl.style.display = 'block';
-    errorEl.style.display = 'none';
-    stagesEl.innerHTML = '';
-
-    const url = 'https://sportapi7.p.rapidapi.com/api/v1/stage/sport/football/featured';
-
-    try {
-      const response = await fetch(url, {
+    async function fetchLiveFootball() {
+      const options = {
         method: 'GET',
         headers: {
-          'x-rapidapi-host': 'sportapi7.p.rapidapi.com',
+          'x-rapidapi-host': 'sofascore.p.rapidapi.com',
           'x-rapidapi-key': 'b8161c7f05msh41c6944585a0769p18cb3ejsncd42beac4c7a'
         }
-      });
+      };
 
-      if (!response.ok) {
-        throw new Error('Erro na resposta da API: ' + response.status);
+      try {
+        const res = await fetch('https://sofascore.p.rapidapi.com/categories/list-live?sport=football', options);
+        const data = await res.json();
+
+        matchesDiv.innerHTML = '';
+
+        if (!data.categories || data.categories.length === 0) {
+          matchesDiv.innerHTML = "<p>Nenhuma partida ao vivo no momento.</p>";
+          return;
+        }
+
+        data.categories.forEach(category => {
+          category.tournaments.forEach(tournament => {
+            tournament.events.forEach(event => {
+              const home = event.homeTeam.name;
+              const away = event.awayTeam.name;
+              const status = event.status.description || 'Não disponível';
+              const homeScore = event.homeScore.current !== null ? event.homeScore.current : '-';
+              const awayScore = event.awayScore.current !== null ? event.awayScore.current : '-';
+              const score = `${homeScore} x ${awayScore}`;
+
+              const card = document.createElement('div');
+              card.className = 'card';
+
+              card.innerHTML = `
+                <div class="match-title">${home} vs ${away}</div>
+                <div class="match-info">Placar: ${score} | Status: ${status}</div>
+              `;
+
+              matchesDiv.appendChild(card);
+            });
+          });
+        });
+
+      } catch (error) {
+        matchesDiv.innerHTML = `<p>Erro ao carregar jogos: ${error.message}</p>`;
       }
-
-      const data = await response.json();
-      loadingEl.style.display = 'none';
-
-      if (!data || !data.length) {
-        errorEl.style.display = 'block';
-        errorEl.textContent = 'Nenhum campeonato em destaque encontrado.';
-        return;
-      }
-
-      data.forEach(stage => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <div class="stage-name">${stage.name}</div>
-          <div class="stage-details">
-            País: ${stage.country?.name || 'N/A'} <br/>
-            Tipo: ${stage.type || 'N/A'}
-          </div>
-        `;
-        stagesEl.appendChild(li);
-      });
-    } catch (err) {
-      loadingEl.style.display = 'none';
-      errorEl.style.display = 'block';
-      errorEl.textContent = 'Erro ao carregar os campeonatos: ' + err.message;
     }
-  }
 
-  fetchFeaturedStages();
-</script>
+    fetchLiveFootball();
 
+    // Atualiza a cada 10 minutos (600000ms)
+    setInterval(fetchLiveFootball, 600000);
+  </script>
 </body>
 </html>
