@@ -3,21 +3,20 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Próximos Jogos de Futebol</title>
+<title>Campeonatos em Destaque - Futebol</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f5f7fa;
+    background: #f0f4f8;
     margin: 0; padding: 20px;
-    display: flex;
-    justify-content: center;
+    display: flex; justify-content: center;
   }
   .container {
-    max-width: 700px;
+    max-width: 720px;
     width: 100%;
   }
   h1 {
-    color: #1e40af;
+    color: #2563eb;
     margin-bottom: 1rem;
     font-weight: 700;
   }
@@ -30,53 +29,55 @@
     font-weight: 600;
   }
   ul {
-    list-style-type: none;
-    padding-left: 0;
+    list-style: none;
+    padding: 0;
   }
   li {
-    background: white;
-    margin-bottom: 10px;
-    padding: 12px 15px;
+    background: #fff;
+    margin-bottom: 12px;
+    padding: 15px 18px;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
-    cursor: pointer;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+    cursor: default;
     transition: background 0.2s ease;
   }
   li:hover {
     background: #e0e7ff;
   }
-  .match-time {
-    font-weight: 600;
-    color: #4b5563;
-  }
-  .teams {
+  .stage-name {
     font-weight: 700;
-    font-size: 1.1rem;
-    color: #111827;
+    font-size: 1.15rem;
+    color: #1e3a8a;
+  }
+  .stage-details {
+    font-size: 0.9rem;
+    color: #4b5563;
   }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Próximos Jogos de Futebol</h1>
-  <div id="loading" class="loading">Carregando jogos...</div>
+  <h1>Campeonatos em Destaque (Futebol)</h1>
+  <div id="loading" class="loading">Carregando campeonatos...</div>
   <div id="error" class="error" style="display:none;"></div>
-  <ul id="matches"></ul>
+  <ul id="stages"></ul>
 </div>
 
 <script>
   const loadingEl = document.getElementById('loading');
   const errorEl = document.getElementById('error');
-  const matchesEl = document.getElementById('matches');
+  const stagesEl = document.getElementById('stages');
 
-  async function fetchMatches() {
+  async function fetchFeaturedStages() {
     loadingEl.style.display = 'block';
     errorEl.style.display = 'none';
-    matchesEl.innerHTML = '';
+    stagesEl.innerHTML = '';
+
+    const url = 'https://sportapi7.p.rapidapi.com/api/v1/stage/sport/football/featured';
 
     try {
-      const response = await fetch('https://sportapi7.p.rapidapi.com/api/v1/sport/football/scheduled-events', {
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'x-rapidapi-host': 'sportapi7.p.rapidapi.com',
@@ -89,45 +90,33 @@
       }
 
       const data = await response.json();
-
       loadingEl.style.display = 'none';
 
-      if (!data || !Array.isArray(data) || data.length === 0) {
+      if (!data || !data.length) {
         errorEl.style.display = 'block';
-        errorEl.textContent = 'Nenhum jogo agendado encontrado.';
+        errorEl.textContent = 'Nenhum campeonato em destaque encontrado.';
         return;
       }
 
-      data.forEach(event => {
+      data.forEach(stage => {
         const li = document.createElement('li');
-
-        // Ajuste conforme os campos reais do JSON
-        const startTime = new Date(event.startTime).toLocaleString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
-        const home = event.homeTeam?.name || 'Time Casa';
-        const away = event.awayTeam?.name || 'Time Fora';
-
         li.innerHTML = `
-          <div class="match-time">${startTime}</div>
-          <div class="teams">${home} vs ${away}</div>
+          <div class="stage-name">${stage.name}</div>
+          <div class="stage-details">
+            País: ${stage.country?.name || 'N/A'} <br/>
+            Tipo: ${stage.type || 'N/A'}
+          </div>
         `;
-        matchesEl.appendChild(li);
+        stagesEl.appendChild(li);
       });
     } catch (err) {
       loadingEl.style.display = 'none';
       errorEl.style.display = 'block';
-      errorEl.textContent = 'Erro ao carregar os jogos: ' + err.message;
+      errorEl.textContent = 'Erro ao carregar os campeonatos: ' + err.message;
     }
   }
 
-  fetchMatches();
-  // Atualiza a cada 10 minutos (600000 ms)
-  setInterval(fetchMatches, 600000);
+  fetchFeaturedStages();
 </script>
 
 </body>
