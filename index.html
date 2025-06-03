@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Jogos Reais SofaScore</title>
+  <title>Jogos de Futebol - Ao Vivo e do Dia</title>
   <style>
-    /* Reset básico */
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
@@ -27,13 +24,25 @@
       margin-bottom: 2rem;
       text-align: center;
       letter-spacing: 1.2px;
+      width: 100%;
+      max-width: 900px;
     }
-    #matches {
+    h2 {
+      font-weight: 600;
+      font-size: 1.6rem;
+      color: #1e40af;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      width: 100%;
+      max-width: 900px;
+    }
+    .matches-container {
       max-width: 900px;
       width: 100%;
       display: grid;
       grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
       gap: 1.5rem;
+      margin-bottom: 2rem;
     }
     .card {
       background: white;
@@ -49,97 +58,4 @@
     }
     .match-title {
       font-size: 1.3rem;
-      font-weight: 700;
-      color: #1e40af;
-      margin-bottom: 0.5rem;
-      line-height: 1.2;
-    }
-    .match-info {
-      font-size: 1rem;
-      color: #555;
-      font-weight: 500;
-      letter-spacing: 0.03em;
-    }
-    p {
-      text-align: center;
-      font-size: 1.1rem;
-      color: #777;
-    }
-
-    /* Responsividade simples */
-    @media (max-width: 480px) {
-      body {
-        padding: 1rem 0.5rem;
-      }
-      h1 {
-        font-size: 1.8rem;
-        margin-bottom: 1.5rem;
-      }
-      .card {
-        padding: 1rem 1.2rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <h1>Jogos de Futebol ao Vivo - SofaScore</h1>
-  <div id="matches">Carregando jogos...</div>
-
-  <script>
-    const matchesDiv = document.getElementById('matches');
-
-    async function fetchLiveFootball() {
-      const options = {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-host': 'sofascore.p.rapidapi.com',
-          'x-rapidapi-key': 'b8161c7f05msh41c6944585a0769p18cb3ejsncd42beac4c7a'
-        }
-      };
-
-      try {
-        const res = await fetch('https://sofascore.p.rapidapi.com/categories/list-live?sport=football', options);
-        const data = await res.json();
-
-        matchesDiv.innerHTML = '';
-
-        if (!data.categories || data.categories.length === 0) {
-          matchesDiv.innerHTML = "<p>Nenhuma partida ao vivo no momento.</p>";
-          return;
-        }
-
-        data.categories.forEach(category => {
-          category.tournaments.forEach(tournament => {
-            tournament.events.forEach(event => {
-              const home = event.homeTeam.name;
-              const away = event.awayTeam.name;
-              const status = event.status.description || 'Não disponível';
-              const homeScore = event.homeScore.current !== null ? event.homeScore.current : '-';
-              const awayScore = event.awayScore.current !== null ? event.awayScore.current : '-';
-              const score = `${homeScore} x ${awayScore}`;
-
-              const card = document.createElement('div');
-              card.className = 'card';
-
-              card.innerHTML = `
-                <div class="match-title">${home} vs ${away}</div>
-                <div class="match-info">Placar: ${score} | Status: ${status}</div>
-              `;
-
-              matchesDiv.appendChild(card);
-            });
-          });
-        });
-
-      } catch (error) {
-        matchesDiv.innerHTML = `<p>Erro ao carregar jogos: ${error.message}</p>`;
-      }
-    }
-
-    fetchLiveFootball();
-
-    // Atualiza a cada 10 minutos (600000ms)
-    setInterval(fetchLiveFootball, 600000);
-  </script>
-</body>
-</html>
+      f
