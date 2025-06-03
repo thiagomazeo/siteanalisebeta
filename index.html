@@ -58,4 +58,162 @@
     }
     .match-title {
       font-size: 1.3rem;
-      f
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+    .match-info {
+      font-size: 1rem;
+      color: #555;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+    p {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #777;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 1rem 0.5rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+      }
+      h2 {
+        font-size: 1.3rem;
+        margin-top: 1.8rem;
+        margin-bottom: 1rem;
+      }
+      .card {
+        padding: 1rem 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Jogos de Futebol - Ao Vivo e do Dia</h1>
+
+  <section>
+    <h2>Jogos ao Vivo</h2>
+    <div id="live-matches" class="matches-container">
+      Carregando jogos ao vivo...
+    </div>
+  </section>
+
+  <section>
+    <h2>Jogos do Dia</h2>
+    <div id="today-matches" class="matches-container">
+      Carregando jogos do dia...
+    </div>
+  </section>
+
+  <script>
+    const liveDiv = document.getElementById('live-matches');
+    const todayDiv = document.getElementById('today-matches');
+
+    const headers = {
+      'x-rapidapi-host': 'sofascore.p.rapidapi.com',
+      'x-rapidapi-key': 'b8161c7f05msh41c6944585a0769p18cb3ejsncd42beac4c7a'
+    };
+
+    async function fetchLiveMatches() {
+      try {
+        const res = await fetch('https://sofascore.p.rapidapi.com/categories/list-live?sport=football', { method: 'GET', headers });
+        const data = await res.json();
+
+        liveDiv.innerHTML = '';
+
+        if (!data.categories || data.categories.length === 0) {
+          liveDiv.innerHTML = "<p>Nenhuma partida ao vivo no momento.</p>";
+          return;
+        }
+
+        data.categories.forEach(category => {
+          category.tournaments.forEach(tournament => {
+            tournament.events.forEach(event => {
+              const home = event.homeTeam.name;
+              const away = event.awayTeam.name;
+              const status = event.status.description || 'Não disponível';
+              const homeScore = event.homeScore.current !== null ? event.homeScore.current : '-';
+              const awayScore = event.awayScore.current !== null ? event.awayScore.current : '-';
+              const score = `${homeScore} x ${awayScore}`;
+
+              const card = document.createElement('div');
+              card.className = 'card';
+
+              card.innerHTML = `
+                <div class="match-title">${home} vs ${away}</div>
+                <div class="match-info">Placar: ${score} | Status: ${status}</div>
+              `;
+
+              liveDiv.appendChild(card);
+            });
+          });
+        });
+
+      } catch (error) {
+        liveDiv.innerHTML = `<p>Erro ao carregar jogos ao vivo: ${error.message}</p>`;
+      }
+    }
+
+    // Função para formatar data no padrão yyyy-mm-dd
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    async function fetchTodayMatches() {
+      const today = formatDate(new Date());
+
+      try {
+        const res = await fetch(`https://sofascore.p.rapidapi.com/football-events/v1/list-by-date?date=${today}`, { method: 'GET', headers });
+        const data = await res.json();
+
+        todayDiv.innerHTML = '';
+
+        if (!data.events || data.events.length === 0) {
+          todayDiv.innerHTML = "<p>Nenhum jogo encontrado para hoje.</p>";
+          return;
+        }
+
+        data.events.forEach(event => {
+          const home = event.homeTeam.name;
+          const away = event.awayTeam.name;
+          const status = event.status.description || 'Não disponível';
+          const homeScore = event.homeScore.current !== null ? event.homeScore.current : '-';
+          const awayScore = event.awayScore.current !== null ? event.awayScore.current : '-';
+          const score = `${homeScore} x ${awayScore}`;
+
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          card.innerHTML = `
+            <div class="match-title">${home} vs ${away}</div>
+            <div class="match-info">Placar: ${score} | Status: ${status}</div>
+          `;
+
+          todayDiv.appendChild(card);
+        });
+
+      } catch (error) {
+        todayDiv.innerHTML = `<p>Erro ao carregar jogos do dia: ${error.message}</p>`;
+      }
+    }
+
+    fetchLiveMatches();
+    fetchTodayMatches();
+
+    // Atualiza a cada 10 minutos
+    setInterval(() => {
+      fetchLiveMatches();
+      fetchTodayMatches();
+    }, 600000);
+  </script>
+</body>
+</html>
