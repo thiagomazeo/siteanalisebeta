@@ -3,123 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Análise Futebol Ao Vivo</title>
+  <title>Jogos Reais SofaScore</title>
   <style>
-    /* Reset simples */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9fafb;
-      color: #222;
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background-color: #2563eb;
-      color: white;
-      padding: 1.5rem 2rem;
-      text-align: center;
-      box-shadow: 0 3px 6px rgb(37 99 235 / 0.3);
-    }
-
-    header h1 {
-      font-weight: 700;
-      font-size: 1.8rem;
-      letter-spacing: 0.05em;
-    }
-
-    main {
-      flex: 1;
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      width: 100%;
-    }
-
-    .card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      padding: 1.5rem 2rem;
-      margin-bottom: 1.5rem;
-      transition: box-shadow 0.3s ease;
-    }
-
-    .card:hover {
-      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    }
-
-    .match-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-      color: #1e40af;
-    }
-
-    .match-info {
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
-      color: #444;
-    }
-
-    .probability {
-      font-weight: 700;
-      font-size: 1rem;
-      color: #059669; /* verde */
-    }
-
-    footer {
-      background: #e0e7ff;
-      padding: 1rem 2rem;
-      text-align: center;
-      color: #374151;
-      font-size: 0.9rem;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-    }
-
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.4rem;
-      }
-      main {
-        margin: 1rem;
-      }
-    }
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    .card { background: #fff; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 6px #ccc; }
+    .match-title { font-weight: bold; font-size: 1.1rem; color: #007acc; }
+    .match-info { color: #555; margin-top: 0.3rem; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Análise Futebol Ao Vivo - Back Favorito</h1>
-  </header>
+  <h1>Jogos de Futebol ao Vivo - SofaScore</h1>
+  <div id="matches"></div>
 
-  <main>
-    <div class="card">
-      <div class="match-title">Time A vs Time B</div>
-      <div class="match-info">Placar: 1 x 0 | Tempo: 12'</div>
-      <div class="probability">Probabilidade de Acerto: 78%</div>
-      <div class="recommendation" style="color:#2563eb; font-weight:600; margin-top: 0.5rem;">Recomendação: Back Time A</div>
-    </div>
+  <script>
+    const matchesDiv = document.getElementById('matches');
 
-    <div class="card">
-      <div class="match-title">Time C vs Time D</div>
-      <div class="match-info">Placar: 2 x 2 | Tempo: 27'</div>
-      <div class="probability">Probabilidade de Acerto: 65%</div>
-      <div class="recommendation" style="color:#2563eb; font-weight:600; margin-top: 0.5rem;">Recomendação: Back Time D</div>
-    </div>
+    async function fetchLiveFootball() {
+      const options = {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-host': 'sofascore.p.rapidapi.com',
+          'x-rapidapi-key': 'b8161c7f05msh41c6944585a0769p18cb3ejsncd42beac4c7a'
+        }
+      };
 
-    <!-- Aqui você pode injetar dinamicamente as análises -->
-  </main>
+      try {
+        const res = await fetch('https://sofascore.p.rapidapi.com/categories/list-live?sport=football', options);
+        const data = await res.json();
 
-  <footer>
-    &copy; 2025 Análise Futebol Ao Vivo — Desenvolvido por Você
-  </footer>
+        // O SofaScore organiza dados em categorias e eventos (jogos)
+        // Vamos percorrer as categorias e depois eventos
+        matchesDiv.innerHTML = ''; // limpa
+        data.forEach(category => {
+          category.tournaments.forEach(tournament => {
+            tournament.events.forEach(event => {
+              const home = event.homeTeam.name;
+              const away = event.awayTeam.name;
+              const status = event.status.description; // ex: "12' 1º tempo"
+              const score = `${event.homeScore.current} x ${event.awayScore.current}`;
+
+              const card = document.createElement('div');
+              card.className = 'card';
+
+              card.innerHTML = `
+                <div class="match-title">${home} vs ${away}</div>
+                <div class="match-info">Placar: ${score} | Status: ${status}</div>
+              `;
+
+              matchesDiv.appendChild(card);
+            });
+          });
+        });
+
+      } catch (error) {
+        matchesDiv.innerHTML = `<p>Erro ao carregar jogos: ${error.message}</p>`;
+      }
+    }
+
+    fetchLiveFootball();
+
+    // Atualiza a cada 10 minutos (600000 ms)
+    setInterval(fetchLiveFootball, 600000);
+  </script>
 </body>
 </html>
