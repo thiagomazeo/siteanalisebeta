@@ -1,19 +1,89 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Jogos Reais SofaScore</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; }
-    .card { background: #fff; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 6px #ccc; }
-    .match-title { font-weight: bold; font-size: 1.1rem; color: #007acc; }
-    .match-info { color: #555; margin-top: 0.3rem; }
+    /* Reset básico */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f5f7fa;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 2.2rem;
+      color: #2563eb;
+      margin-bottom: 2rem;
+      text-align: center;
+      letter-spacing: 1.2px;
+    }
+    #matches {
+      max-width: 900px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+    }
+    .match-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+    .match-info {
+      font-size: 1rem;
+      color: #555;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+    p {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #777;
+    }
+
+    /* Responsividade simples */
+    @media (max-width: 480px) {
+      body {
+        padding: 1rem 0.5rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+      }
+      .card {
+        padding: 1rem 1.2rem;
+      }
+    }
   </style>
 </head>
 <body>
   <h1>Jogos de Futebol ao Vivo - SofaScore</h1>
-  <div id="matches"></div>
+  <div id="matches">Carregando jogos...</div>
 
   <script>
     const matchesDiv = document.getElementById('matches');
@@ -31,16 +101,22 @@
         const res = await fetch('https://sofascore.p.rapidapi.com/categories/list-live?sport=football', options);
         const data = await res.json();
 
-        // O SofaScore organiza dados em categorias e eventos (jogos)
-        // Vamos percorrer as categorias e depois eventos
-        matchesDiv.innerHTML = ''; // limpa
-        data.forEach(category => {
+        matchesDiv.innerHTML = '';
+
+        if (!data.categories || data.categories.length === 0) {
+          matchesDiv.innerHTML = "<p>Nenhuma partida ao vivo no momento.</p>";
+          return;
+        }
+
+        data.categories.forEach(category => {
           category.tournaments.forEach(tournament => {
             tournament.events.forEach(event => {
               const home = event.homeTeam.name;
               const away = event.awayTeam.name;
-              const status = event.status.description; // ex: "12' 1º tempo"
-              const score = `${event.homeScore.current} x ${event.awayScore.current}`;
+              const status = event.status.description || 'Não disponível';
+              const homeScore = event.homeScore.current !== null ? event.homeScore.current : '-';
+              const awayScore = event.awayScore.current !== null ? event.awayScore.current : '-';
+              const score = `${homeScore} x ${awayScore}`;
 
               const card = document.createElement('div');
               card.className = 'card';
@@ -62,7 +138,7 @@
 
     fetchLiveFootball();
 
-    // Atualiza a cada 10 minutos (600000 ms)
+    // Atualiza a cada 10 minutos (600000ms)
     setInterval(fetchLiveFootball, 600000);
   </script>
 </body>
